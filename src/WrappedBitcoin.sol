@@ -3,20 +3,8 @@ pragma solidity 0.8.20;
 
 import {ERC20} from "solmate/tokens/ERC20.sol";
 import {Owned} from "solmate/auth/Owned.sol";
-
-interface IBitcoin {
-    function balanceOf(address owner) external returns (uint256);
-    function transfer(address to, uint256 value) external returns (bool);
-    function decimals() external returns (uint8);
-}
-
-contract DropBox is Owned {
-    constructor(address owner_) Owned(owner_) {}
-
-    function collect(uint256 value, IBitcoin underlying) public onlyOwner {
-        underlying.transfer(owner, value);
-    }
-}
+import {IBitcoin} from "../interfaces/IBitcoin.sol";
+import {DropBox} from "./DropBox.sol";
 
 contract WrappedBitcoin is ERC20 {
     // =============================================================
