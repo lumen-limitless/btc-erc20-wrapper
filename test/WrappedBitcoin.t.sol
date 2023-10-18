@@ -15,7 +15,7 @@ contract WrappedBitcoinTest is Test {
         vm.deal(OWNER, 100e18);
 
         wbtc = new WrappedBitcoin();
-        btc = wbtc.underlying();
+        btc = IBitcoin(wbtc.underlying());
 
         vm.prank(OWNER);
         wbtc.createDropBox();

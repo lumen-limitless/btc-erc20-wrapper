@@ -37,10 +37,14 @@ contract WrappedBitcoin is ERC20 {
     event Unwrapped(uint256 indexed value, address indexed owner);
 
     // =============================================================
-    //                           STORAGE
+    //                           CONSTANTS
     // =============================================================
 
-    IBitcoin public underlying = IBitcoin(address(0x853737186cb24D4152f979B9152F652b67F7e9b7));
+    IBitcoin private constant UNDERLYING = IBitcoin(address(0x853737186cb24D4152f979B9152F652b67F7e9b7));
+
+    // =============================================================
+    //                           STORAGE
+    // =============================================================
 
     mapping(address => address) public dropBoxes;
 
@@ -66,10 +70,10 @@ contract WrappedBitcoin is ERC20 {
         address dropBox = dropBoxes[msg.sender];
 
         if (dropBox == address(0)) revert DropBoxNotCreated(msg.sender);
-        if (underlying.balanceOf(dropBox) < value) revert DropBoxInsufficientBalance(msg.sender);
+        if (UNDERLYING.balanceOf(dropBox) < value) revert DropBoxInsufficientBalance(msg.sender);
 
-        DropBox(dropBox).collect(value, underlying);
         _mint(msg.sender, value);
+        DropBox(dropBox).collect(value, UNDERLYING);
 
         emit Wrapped(value, msg.sender);
     }
@@ -77,9 +81,13 @@ contract WrappedBitcoin is ERC20 {
     function withdraw(uint256 value) public {
         if (balanceOf[msg.sender] < value) revert OwnerInsufficientBalance(msg.sender);
 
-        underlying.transfer(msg.sender, value);
         _burn(msg.sender, value);
+        UNDERLYING.transfer(msg.sender, value);
 
         emit Unwrapped(value, msg.sender);
+    }
+
+    function underlying() public pure returns (address) {
+        return address(UNDERLYING);
     }
 }
