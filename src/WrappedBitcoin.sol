@@ -40,12 +40,14 @@ contract WrappedBitcoin is ERC20 {
     //                           CONSTANTS
     // =============================================================
 
-    IBitcoin private constant UNDERLYING = IBitcoin(address(0x853737186cb24D4152f979B9152F652b67F7e9b7));
+    /// @dev The address of the underlying token.
+    address private constant _UNDERLYING = address(0x853737186cb24D4152f979B9152F652b67F7e9b7);
 
     // =============================================================
     //                           STORAGE
     // =============================================================
 
+    /// @notice The mapping of drop boxes.
     mapping(address => address) public dropBoxes;
 
     // =============================================================
@@ -58,6 +60,7 @@ contract WrappedBitcoin is ERC20 {
     //                           FUNCTIONS
     // =============================================================
 
+    /// @notice Creates a drop box for the caller.
     function createDropBox() public {
         if (dropBoxes[msg.sender] != address(0)) revert DropBoxAlreadyExists(msg.sender);
 
@@ -66,28 +69,33 @@ contract WrappedBitcoin is ERC20 {
         emit DropBoxCreated(msg.sender);
     }
 
+    /// @notice Deposits tokens into the wrapper.
+    /// @param value The amount of tokens to deposit.
     function deposit(uint256 value) public {
         address dropBox = dropBoxes[msg.sender];
 
         if (dropBox == address(0)) revert DropBoxNotCreated(msg.sender);
-        if (UNDERLYING.balanceOf(dropBox) < value) revert DropBoxInsufficientBalance(msg.sender);
+        if (IBitcoin(_UNDERLYING).balanceOf(dropBox) < value) revert DropBoxInsufficientBalance(msg.sender);
 
         _mint(msg.sender, value);
-        DropBox(dropBox).collect(value, UNDERLYING);
+        DropBox(dropBox).collect(value, IBitcoin(_UNDERLYING));
 
         emit Wrapped(value, msg.sender);
     }
 
+    /// @notice Withdraws tokens from the wrapper.
+    /// @param value The amount of tokens to withdraw.
     function withdraw(uint256 value) public {
         if (balanceOf[msg.sender] < value) revert OwnerInsufficientBalance(msg.sender);
 
         _burn(msg.sender, value);
-        UNDERLYING.transfer(msg.sender, value);
+        IBitcoin(_UNDERLYING).transfer(msg.sender, value);
 
         emit Unwrapped(value, msg.sender);
     }
 
+    /// @notice Returns the underlying token.
     function underlying() public pure returns (address) {
-        return address(UNDERLYING);
+        return _UNDERLYING;
     }
 }
