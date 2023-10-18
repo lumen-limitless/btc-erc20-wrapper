@@ -6,7 +6,7 @@ import {Owned} from "solmate/auth/Owned.sol";
 
 interface IBitcoin {
     function balanceOf(address owner) external returns (uint256);
-    function transfer(address to, uint256 value) external;
+    function transfer(address to, uint256 value) external returns (bool);
     function decimals() external returns (uint8);
 }
 
@@ -33,8 +33,8 @@ contract WrappedBitcoin is ERC20 {
     // =============================================================
 
     event DropBoxCreated(address indexed owner);
-    event Wrapped(uint256 indexed value, address indexed owner);
-    event Unwrapped(uint256 indexed value, address indexed owner);
+    event Deposit(address indexed from, uint256 amount);
+    event Withdrawal(address indexed to, uint256 amount);
 
     // =============================================================
     //                           CONSTANTS
@@ -70,28 +70,28 @@ contract WrappedBitcoin is ERC20 {
     }
 
     /// @notice Deposits tokens into the wrapper.
-    /// @param value The amount of tokens to deposit.
-    function deposit(uint256 value) public {
+    /// @param amount The amount of tokens to deposit.
+    function deposit(uint256 amount) public {
         address dropBox = dropBoxes[msg.sender];
 
         if (dropBox == address(0)) revert DropBoxNotCreated(msg.sender);
-        if (IBitcoin(_UNDERLYING).balanceOf(dropBox) < value) revert DropBoxInsufficientBalance(msg.sender);
+        if (IBitcoin(_UNDERLYING).balanceOf(dropBox) < amount) revert DropBoxInsufficientBalance(msg.sender);
 
-        _mint(msg.sender, value);
-        DropBox(dropBox).collect(value, IBitcoin(_UNDERLYING));
+        _mint(msg.sender, amount);
+        DropBox(dropBox).collect(amount, IBitcoin(_UNDERLYING));
 
-        emit Wrapped(value, msg.sender);
+        emit Deposit(msg.sender, amount);
     }
 
     /// @notice Withdraws tokens from the wrapper.
-    /// @param value The amount of tokens to withdraw.
-    function withdraw(uint256 value) public {
-        if (balanceOf[msg.sender] < value) revert OwnerInsufficientBalance(msg.sender);
+    /// @param amount The amount of tokens to withdraw.
+    function withdraw(uint256 amount) public {
+        if (balanceOf[msg.sender] < amount) revert OwnerInsufficientBalance(msg.sender);
 
-        _burn(msg.sender, value);
-        IBitcoin(_UNDERLYING).transfer(msg.sender, value);
+        _burn(msg.sender, amount);
+        IBitcoin(_UNDERLYING).transfer(msg.sender, amount);
 
-        emit Unwrapped(value, msg.sender);
+        emit Withdrawal(msg.sender, amount);
     }
 
     /// @notice Returns the underlying token.
