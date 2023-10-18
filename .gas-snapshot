@@ -1,0 +1,4 @@
+WrappedBitcoinTest:testBitcoinDecimals() (gas: 10706)
+WrappedBitcoinTest:testOwnerBalance() (gas: 13600)
+WrappedBitcoinTest:testUnwrap() (gas: 121428)
+WrappedBitcoinTest:testWrap() (gas: 116020)
